@@ -14,6 +14,17 @@ so I can utilize JIT (Numba) easier on functional modules.
 """
 
 # Define all valid Sympy function parts.
+
+# TODO Break up into:
+# - Functions (log, abs, betainc, polygamma)
+# - Operators (+, -, *, /, **, ^)
+# - Numbers (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, .)
+# - Variables (x)
+# - Constants (E, pi)
+# - Parenthesis ((), [])
+# - Comma (,)
+
+# Raw expression parts.
 expression_parts_sympy = [
     "x",
     "log",
@@ -81,6 +92,7 @@ functions_info = {
 }
 
 
+# Can resolve the symbols.
 def evaluate_expression_sympy(expression, x_value):
     x = sp.Symbol('x')
     parsed_expression = sp.parse_expr(expression)
@@ -88,15 +100,20 @@ def evaluate_expression_sympy(expression, x_value):
     result = parsed_expression.subs(x, x_value).evalf()
     return result, lambda_expression
 
-# def random_equation(length=100, stop_perc=0.05):
-#     equation = ""
-#     for _ in range(length):
-#         if np.random.random() < stop_perc:
-#             break
-#         equation += np.random.choice(expression_parts_sympy)
-#     return equation
+# Old, but purely symbolic.
+def random_equation(length=100, stop_perc=0.05):
+    equation = ""
+    for _ in range(length):
+        if np.random.random() < stop_perc:
+            break
+        equation += np.random.choice(expression_parts_sympy)
+    return equation
 
-
+# Will generate a random expression, with a much higher
+# and quicker success rate per-iteration, but is hard to
+# track the expression parts. I will use this to brute force
+# as many equations, and see if I can convert it back into the
+# desired format.
 def expression(n=10, variable="x"):
     expr = sp.sympify(0)
     x = sp.symbols(variable)
