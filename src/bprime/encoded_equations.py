@@ -118,13 +118,15 @@ def random_equation(length=100, stop_perc=0.05):
 # track the expression parts. I will use this to brute force
 # as many equations, and see if I can convert it back into the
 # desired format.
-def expression(n=50, variable="x"):
+def expression(n=50, variable="x", stop_perc=0.05):
     expr = sp.sympify(0)
     x = sp.symbols(variable)
     equation_meta = []  # Initialize the list of tokens
 
     for _ in range(n):
         part = random.choice(expression_parts_sympy)
+        if np.random.random() < stop_perc:
+            break
         if part == variable:
             term = x
             equation_meta.append(part)
@@ -171,11 +173,17 @@ def expression(n=50, variable="x"):
 # First 25 primes:
 primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
 
+# First 100 primes. 
+primes_100 = [
+
+]
+
 def find_best():
     # Find the best equation.
     best_error = float("inf")
     iters = 0
     while True:
+        preds = []
         # Generate a random equation.
         ex, _ = expression(10, "x")
         try:
@@ -186,20 +194,27 @@ def find_best():
 
         # I vs Prime.
         for i, prime in enumerate(primes):
-            # Calculate the error.
             try:
-                error += abs(sp.N(ex_lambda(i + 1)) - prime)
+                pred = sp.N(ex_lambda(i + 1), n=4)
             except:
-                continue
+                break
+            actu = prime
+            diff = abs(pred - actu)
+            error += diff
+            try:
+                error = float(f"{error:.2f}")
+            except:
+                break
+            preds.append(pred)
 
         # Check error not isNaN.
-        if str(error) == "nan":
+        if str(error) == "nan" or len(preds) != len(primes):
             continue
 
         # Best error.        
         if error < best_error:
             best_error = error
-            print(f"Best error: {best_error}, Ex: {ex}")
+            print(f"Best error: {best_error}, Ex: {ex}, Preds: {len(preds)} (i={iters})")
 
         # Iters.
         iters += 1
