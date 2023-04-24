@@ -74,8 +74,8 @@ expression_parts_sympy = [
     "asinh",
     "acosh",
     "atanh",
-    "erf",
-    "erfc",
+    # "erf",
+    # "erfc",
     "gamma",
     "loggamma",
     "digamma",
@@ -113,6 +113,11 @@ def random_equation(length=100, stop_perc=0.05):
         equation += np.random.choice(expression_parts_sympy)
     return equation
 
+# Randomness of choice.
+def roc():
+    return random.randint(1, 9)
+    # return random.randrange(0, 1_000)
+
 # Will generate a random expression, with a much higher
 # and quicker success rate per-iteration, but is hard to
 # track the expression parts. I will use this to brute force
@@ -132,7 +137,8 @@ def expression(n=50, variable="x", stop_perc=0.05):
             equation_meta.append(part)
         elif part in {"+", "-", "*", "/"}:
             op = part
-            term = random.choice([x, random.randint(1, 9)])
+
+            term = random.choice([x, roc()])
             if op == "+":
                 expr += term
             elif op == "-":
@@ -142,6 +148,7 @@ def expression(n=50, variable="x", stop_perc=0.05):
             elif op == "/":
                 expr /= term
             equation_meta.append(op)
+            equation_meta.append(str(term))
             continue
         elif part.isdigit():
             term = int(part)
@@ -153,7 +160,7 @@ def expression(n=50, variable="x", stop_perc=0.05):
             if part in functions_info:
                 min_args, max_args = functions_info[part]
                 num_args = random.randint(min_args, max_args)
-                args = [random.choice([x, random.randint(1, 9)])
+                args = [random.choice([x, roc()])
                         for _ in range(num_args)]
                 for arg in args:
                     if isinstance(arg, sp.Symbol):
@@ -173,19 +180,29 @@ def expression(n=50, variable="x", stop_perc=0.05):
 # First 25 primes:
 primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
 
-# First 100 primes. 
-primes_100 = [
-
+primes = [
+    [1, 2], # 1st prime, 2
+    [2, 3],
+    [3, 5],
+    [4, 7],
+    [5, 11],
+    [10, 29],
+    [100, 541],
+    [1000, 7919],
+    [10000, 104729],
+    [100000, 1299709]
 ]
 
 def find_best():
     # Find the best equation.
     best_error = float("inf")
     iters = 0
+    tries = 0
     while True:
+        tries += 1
         preds = []
         # Generate a random equation.
-        ex, _ = expression(10, "x")
+        ex, _ = expression(20, "x", 0.05)
         try:
             ex_lambda = sp.lambdify("x", ex, modules=["sympy", "numpy"])
         except:
@@ -193,9 +210,11 @@ def find_best():
         error = 0
 
         # I vs Prime.
-        for i, prime in enumerate(primes):
+        for i, prime in primes:
+            if i == 100 and error > 10:
+                break
             try:
-                pred = sp.N(ex_lambda(i + 1), n=4)
+                pred = sp.N(ex_lambda(i), n=2)
             except:
                 break
             actu = prime
@@ -204,6 +223,7 @@ def find_best():
             try:
                 error = float(f"{error:.2f}")
             except:
+                error = float("inf")
                 break
             preds.append(pred)
 
@@ -214,7 +234,7 @@ def find_best():
         # Best error.        
         if error < best_error:
             best_error = error
-            print(f"Best error: {best_error}, Ex: {ex}, Preds: {len(preds)} (i={iters})")
+            print(f"Best error: {best_error}, Ex: {ex}, Preds: {len(preds)}, T={tries} (i={iters})")
 
         # Iters.
         iters += 1
