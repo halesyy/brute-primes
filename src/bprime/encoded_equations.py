@@ -4,6 +4,10 @@ import sympy as sp
 import numpy as np
 from time import perf_counter
 import random
+import warnings
+
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+
 
 """
 The encoded equations library part. This handles all the work surrounding
@@ -114,7 +118,7 @@ def random_equation(length=100, stop_perc=0.05):
 # track the expression parts. I will use this to brute force
 # as many equations, and see if I can convert it back into the
 # desired format.
-def expression(n=10, variable="x"):
+def expression(n=50, variable="x"):
     expr = sp.sympify(0)
     x = sp.symbols(variable)
     equation_meta = []  # Initialize the list of tokens
@@ -164,16 +168,55 @@ def expression(n=10, variable="x"):
 
     return expr, equation_meta
 
+# First 25 primes:
+primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
+
+def find_best():
+    # Find the best equation.
+    best_error = float("inf")
+    iters = 0
+    while True:
+        # Generate a random equation.
+        ex, _ = expression(10, "x")
+        try:
+            ex_lambda = sp.lambdify("x", ex, modules=["sympy", "numpy"])
+        except:
+            continue
+        error = 0
+
+        # I vs Prime.
+        for i, prime in enumerate(primes):
+            # Calculate the error.
+            try:
+                error += abs(sp.N(ex_lambda(i + 1)) - prime)
+            except:
+                continue
+
+        # Check error not isNaN.
+        if str(error) == "nan":
+            continue
+
+        # Best error.        
+        if error < best_error:
+            best_error = error
+            print(f"Best error: {best_error}, Ex: {ex}")
+
+        # Iters.
+        iters += 1
+        if iters % 1000 == 0:
+            print(f"Iterations: {iters}")
+
 
 if __name__ == "__main__":
-    start = perf_counter()
-    # Generate 10,000 equations.
-    for _ in range(10_000):
-        ex, meta = expression(10, "x")
-    # Convert ex into lambda.
-    ex_lambda = sp.lambdify("x", ex, modules=["sympy", "numpy"])
-    ex_number = sp.N(ex_lambda(1))
-    # print out the resolved number.    
-    print(ex_number)
-    # Iterations per second:
-    print(f"> {10_000 / (perf_counter() - start):.2f} equations per second")
+    # start = perf_counter()
+    # # Generate 10,000 equations.
+    # for _ in range(10_000):
+    #     ex, meta = expression(10, "x")
+    # # Convert ex into lambda.
+    # ex_lambda = sp.lambdify("x", ex, modules=["sympy", "numpy"])
+    # ex_number = sp.N(ex_lambda(1))
+    # # print out the resolved number.    
+    # print(ex_number)
+    # # Iterations per second:
+    # print(f"> {10_000 / (perf_counter() - start):.2f} equations per second")
+    find_best()
