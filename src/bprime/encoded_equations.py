@@ -180,7 +180,7 @@ def expression(n=50, variable="x", stop_perc=0.05):
 # First 25 primes:
 primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
 
-primes = [
+test_primes = [
     [1, 2], # 1st prime, 2
     [2, 3],
     [3, 5],
@@ -190,8 +190,22 @@ primes = [
     [100, 541],
     [1000, 7919],
     [10000, 104729],
-    [100000, 1299709]
+    # [100000, 1299709]
 ]
+
+def test_long_error(ex_lambda):
+    # print("> Starting to test long error...")
+    error = 0
+    for i, prime in test_primes:
+        pred = sp.N(ex_lambda(i), n=2)
+        actu = prime
+        diff = abs(pred - actu)
+        error += diff
+        try:
+            error = float(f"{error:.2f}")
+        except:
+            error = float("inf")
+    return error
 
 def find_best():
     # Find the best equation.
@@ -210,11 +224,9 @@ def find_best():
         error = 0
 
         # I vs Prime.
-        for i, prime in primes:
-            if i == 100 and error > 10:
-                break
+        for i, prime in enumerate(primes):
             try:
-                pred = sp.N(ex_lambda(i), n=2)
+                pred = sp.N(ex_lambda(i + 1), n=2)
             except:
                 break
             actu = prime
@@ -234,7 +246,8 @@ def find_best():
         # Best error.        
         if error < best_error:
             best_error = error
-            print(f"Best error: {best_error}, Ex: {ex}, Preds: {len(preds)}, T={tries} (i={iters})")
+            long_error = test_long_error(ex_lambda)
+            print(f"Best error: {best_error}, Long Error: {long_error}, Ex: {ex}, Preds: {len(preds)}, T={tries} (i={iters})")
 
         # Iters.
         iters += 1
@@ -243,15 +256,4 @@ def find_best():
 
 
 if __name__ == "__main__":
-    # start = perf_counter()
-    # # Generate 10,000 equations.
-    # for _ in range(10_000):
-    #     ex, meta = expression(10, "x")
-    # # Convert ex into lambda.
-    # ex_lambda = sp.lambdify("x", ex, modules=["sympy", "numpy"])
-    # ex_number = sp.N(ex_lambda(1))
-    # # print out the resolved number.    
-    # print(ex_number)
-    # # Iterations per second:
-    # print(f"> {10_000 / (perf_counter() - start):.2f} equations per second")
     find_best()
