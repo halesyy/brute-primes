@@ -1,4 +1,4 @@
-# brute-primes
+# Brute Primes
 
 Building a clean, step-by-step approach to attempting to brute force an equation to resolve to as little loss on the prime number curve. The goal is to then build a linear regression model on data paramaters which output as an equation.
 
